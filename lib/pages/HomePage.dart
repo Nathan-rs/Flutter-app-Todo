@@ -89,28 +89,44 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
     ),
-      body:StreamBuilder(
-        stream: stream,
+      body: FutureBuilder<List<Object>>(
+        future: Conection(),
         builder: (context, snapshot){
-          if(!snapshot.hasData){
-            return Center(child: CircularProgressIndicator());
+          if(snapshot.hasError){
+            return Text("Erro ao carregar os dados");
+          }else if(snapshot.hasData){
+            return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index){
+                  return TodoCard(
+                    title: "Wake",
+                    check: true,
+                    iconBgColor: Colors.white,
+                    iconData: Icons.alarm,
+                    time: "10 PM",
+                    inColor: Colors.red,
+                  );
+                });
           }
-          return ListView.builder(
-              itemCount: snapshot.data.docs.length,
-              itemBuilder: (context, index){
-                Map<String, dynamic> data = snapshot.data.docs[index].data() as Map<String,dynamic>
-            return TodoCard(
-              title: "Wake",
-              check: true,
-              iconBgColor: Colors.white,
-              iconData: Icons.alarm,
-              time: "10 PM",
-              inColor: Colors.red,
-            );
-          });
-        }),
+          return Center(child: CircularProgressIndicator(),);
+        },
+      ),
     );
   }
+
+  Future<List<Object>> Conection() async{
+    var base = await FirebaseFirestore.instance.collection("todo").get();
+
+    List<Object> Dados = [];
+
+    for(var doc in base.docs){
+      Dados.add({
+        "title": doc['title']
+      });
+    }
+    return Dados;
+  }
+
 }
 
 
